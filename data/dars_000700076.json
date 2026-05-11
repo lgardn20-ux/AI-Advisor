@@ -1,0 +1,409 @@
+{
+  "studentProfile": {
+    "name": "Luke Gardner",
+    "studentId": "000700076",
+    "major": "Business Administration - Finance",
+    "minor": "Hispanic Studies",
+    "catalogYear": "2024-2025",
+    "totalCreditsCompleted": 73,
+    "totalCreditsRequired": 120,
+    "currentGPA": 3.95,
+    "expectedGraduationSemester": "Spring 2026",
+    "registrationDate": "2025-11-01T00:00:00.000Z",
+    "registrationReminderDays": 14
+  },
+  "completedCourses": [
+    {
+      "courseCode": "ENGL101",
+      "courseName": "English Composition I",
+      "credits": 3,
+      "grade": "S",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Volunteer Core - English Composition"]
+    },
+    {
+      "courseCode": "ENGL298",
+      "courseName": "Honors Writing and Research",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Volunteer Core - English Composition"]
+    },
+    {
+      "courseCode": "EEPS103",
+      "courseName": "The Earth's Environments",
+      "credits": 4,
+      "grade": "A",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Volunteer Core - Natural Sciences"]
+    },
+    {
+      "courseCode": "NUTR100",
+      "courseName": "Introductory Nutrition",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Volunteer Core - Natural Sciences"]
+    },
+    {
+      "courseCode": "HIST262",
+      "courseName": "History/World Civilization",
+      "credits": 3,
+      "grade": "S",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Volunteer Core - Global Citizenship International"]
+    },
+    {
+      "courseCode": "SOCI120",
+      "courseName": "Introduction to Sociology",
+      "credits": 3,
+      "grade": "S",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Volunteer Core - Global Citizenship United States"]
+    },
+    {
+      "courseCode": "PHIL107",
+      "courseName": "Honors: Intro/Philosophy",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Volunteer Core - Arts and Humanities"]
+    },
+    {
+      "courseCode": "SPAN311",
+      "courseName": "Language in Context I",
+      "credits": 3,
+      "grade": "S",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Volunteer Core - Expanded Perspectives"]
+    },
+    {
+      "courseCode": "MATH123",
+      "courseName": "Finite Mathematics",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Volunteer Core - Quantitative Reasoning"]
+    },
+    {
+      "courseCode": "MATH125",
+      "courseName": "Basic Calculus",
+      "credits": 3,
+      "grade": "S",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Volunteer Core - Quantitative Reasoning"]
+    },
+    {
+      "courseCode": "CMST210",
+      "courseName": "Public Speaking",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Volunteer Core - Oral Communication"]
+    },
+    {
+      "courseCode": "ENGL295",
+      "courseName": "Writing in the Workplace",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Volunteer Core - Written Communication"]
+    },
+    {
+      "courseCode": "ECON211",
+      "courseName": "Principles of Microeconomics",
+      "credits": 3,
+      "grade": "A-",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Volunteer Core - Social Sciences", "Pre-Business Requirement"]
+    },
+    {
+      "courseCode": "ECON218",
+      "courseName": "Honors: Prin of Macroeconomics",
+      "credits": 3,
+      "grade": "B+",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Pre-Business Requirement"]
+    },
+    {
+      "courseCode": "MGT311",
+      "courseName": "Ethical Issues / Organizations",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Winter 2026",
+      "fulfills": ["Ethics Requirement"]
+    },
+    {
+      "courseCode": "ACCT208",
+      "courseName": "Honors Intro Financial Accounting",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Lower-Division Pre-Business Core"]
+    },
+    {
+      "courseCode": "MGT208",
+      "courseName": "Honors: Intro Business Management",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Lower-Division Pre-Business Core"]
+    },
+    {
+      "courseCode": "STAT201",
+      "courseName": "Introduction to Statistics",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Lower-Division Pre-Business Core"]
+    },
+    {
+      "courseCode": "BUAD107",
+      "courseName": "Honors Inclusion Engaged Lead/Div",
+      "credits": 1,
+      "grade": "A",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Haslam Leaders"]
+    },
+    {
+      "courseCode": "BUAD207",
+      "courseName": "Honors Integ:Ethicl Lead/Eff Comm",
+      "credits": 1,
+      "grade": "A",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Haslam Leaders"]
+    },
+    {
+      "courseCode": "SPAN312",
+      "courseName": "Language in Context II",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Fall 2024",
+      "fulfills": ["Hispanic Studies Minor"]
+    },
+    {
+      "courseCode": "SPAN330",
+      "courseName": "Textual Analysis",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Hispanic Studies Minor"]
+    },
+    {
+      "courseCode": "SPAN331",
+      "courseName": "Intro/Hispanic Culture",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Spring 2025",
+      "fulfills": ["Hispanic Studies Minor"]
+    },
+    {
+      "courseCode": "SPAN423",
+      "courseName": "Adv Composition/Conversation",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Summer 2025",
+      "fulfills": ["Hispanic Studies Minor"]
+    },
+    {
+      "courseCode": "SPAN461",
+      "courseName": "Special Topics",
+      "credits": 3,
+      "grade": "A",
+      "semesterTaken": "Summer 2025",
+      "fulfills": ["Hispanic Studies Minor"]
+    },
+    {
+      "courseCode": "IB489",
+      "courseName": "Study Abroad",
+      "credits": 0,
+      "grade": "S",
+      "semesterTaken": "Summer 2025",
+      "fulfills": ["International Business Collateral"]
+    },
+    {
+      "courseCode": "ENGL104",
+      "courseName": "Writing Workshop II",
+      "credits": 1,
+      "grade": "S",
+      "semesterTaken": "Fall 2024",
+      "fulfills": []
+    }
+  ],
+  "inProgressCourses": [
+    {
+      "courseCode": "BUAD307",
+      "courseName": "Honors Insight: Person/Prof Aware",
+      "credits": 1,
+      "grade": "RG",
+      "semesterTaken": "Fall 2026",
+      "fulfills": ["Volunteer Core - Applied Oral Communication"]
+    },
+    {
+      "courseCode": "BUAD342",
+      "courseName": "Bus. Innovat/Emerging Tech/AI",
+      "credits": 3,
+      "grade": "RG",
+      "semesterTaken": "Fall 2026",
+      "fulfills": ["Volunteer Core - Engaged Inquiries"]
+    },
+    {
+      "courseCode": "BUAD457",
+      "courseName": "Honors Global Strat Mgmt:Concpt/App",
+      "credits": 4,
+      "grade": "RG",
+      "semesterTaken": "Fall 2026",
+      "fulfills": ["Volunteer Core - Engaged Inquiries"]
+    },
+    {
+      "courseCode": "FINC427",
+      "courseName": "Honors: Invest/Portfolio Mgt",
+      "credits": 3,
+      "grade": "RG",
+      "semesterTaken": "Fall 2026",
+      "fulfills": ["Finance Major Requirements"]
+    },
+    {
+      "courseCode": "FINC428",
+      "courseName": "Honors Financial Stmt Analysis",
+      "credits": 3,
+      "grade": "RG",
+      "semesterTaken": "Fall 2026",
+      "fulfills": ["Finance Major Requirements"]
+    },
+    {
+      "courseCode": "FINC494",
+      "courseName": "Bloomberg Basics",
+      "credits": 1,
+      "grade": "RG",
+      "semesterTaken": "Fall 2026",
+      "fulfills": ["Finance Major Requirements"]
+    },
+    {
+      "courseCode": "IB439",
+      "courseName": "Global Supply Chain Mgt",
+      "credits": 3,
+      "grade": "RG",
+      "semesterTaken": "Fall 2026",
+      "fulfills": ["International Business Collateral"]
+    },
+    {
+      "courseCode": "BUAD331",
+      "courseName": "CBM I: Supply Chain Mgt",
+      "credits": 2,
+      "grade": "IP",
+      "semesterTaken": "Spring 2026",
+      "fulfills": ["Upper-Division Business Core"]
+    },
+    {
+      "courseCode": "BUAD332",
+      "courseName": "CBM I: Demand Management",
+      "credits": 2,
+      "grade": "IP",
+      "semesterTaken": "Spring 2026",
+      "fulfills": ["Upper-Division Business Core"]
+    },
+    {
+      "courseCode": "BUAD341",
+      "courseName": "CBM II: Lean Operations",
+      "credits": 2,
+      "grade": "IP",
+      "semesterTaken": "Spring 2026",
+      "fulfills": ["Upper-Division Business Core"]
+    },
+    {
+      "courseCode": "FINC308",
+      "courseName": "Honors: Financial Management",
+      "credits": 3,
+      "grade": "IP",
+      "semesterTaken": "Spring 2026",
+      "fulfills": ["Upper-Division Business Core"]
+    },
+    {
+      "courseCode": "FINC402",
+      "courseName": "Quantitative Tools for Finance",
+      "credits": 3,
+      "grade": "IP",
+      "semesterTaken": "Spring 2026",
+      "fulfills": ["Finance Major Requirements"]
+    },
+    {
+      "courseCode": "IB409",
+      "courseName": "International Business",
+      "credits": 3,
+      "grade": "IP",
+      "semesterTaken": "Spring 2026",
+      "fulfills": ["International Business Collateral"]
+    },
+    {
+      "courseCode": "INMT242",
+      "courseName": "Business Software Applications",
+      "credits": 3,
+      "grade": "IP",
+      "semesterTaken": "Spring 2026",
+      "fulfills": ["Lower-Division Pre-Business Core", "Volunteer Core - Engaged Inquiries"]
+    }
+  ],
+  "remainingRequirements": [
+    {
+      "requirementCategory": "Upper-Division Business Core - Business Law",
+      "courseOptions": ["BULW301"],
+      "creditsNeeded": 2,
+      "priority": "required",
+      "prerequisites": ["Lower-Division Pre-Business Core"],
+      "corequisites": [],
+      "semesterAvailability": "both",
+      "notes": "Must complete 2 hours"
+    },
+    {
+      "requirementCategory": "Haslam Leaders",
+      "courseOptions": ["BUAD405", "BUAD407"],
+      "creditsNeeded": 1,
+      "priority": "required",
+      "prerequisites": ["BUAD107", "BUAD207"],
+      "corequisites": [],
+      "semesterAvailability": "both",
+      "notes": "Must complete 1 hour from BUAD 405 or 407"
+    },
+    {
+      "requirementCategory": "Finance Major - Core Requirements",
+      "courseOptions": ["FINC455", "FINC457"],
+      "creditsNeeded": 3,
+      "priority": "required",
+      "prerequisites": ["FINC427", "FINC428"],
+      "corequisites": [],
+      "semesterAvailability": "both",
+      "notes": "Must complete 3 hours (1 course from FINC 455 or 457)"
+    },
+    {
+      "requirementCategory": "Finance Major - Electives",
+      "courseOptions": ["FINC311", "FINC381", "FINC435", "FINC440", "FINC445", "FINC460", "FINC461", "FINC475", "FINC481", "FINC482", "FINC493", "FINC495", "FINC496", "IB449"],
+      "creditsNeeded": 5,
+      "priority": "required",
+      "prerequisites": ["Finance Major Requirements"],
+      "corequisites": [],
+      "semesterAvailability": "both",
+      "notes": "Must complete 5 hours of Finance electives"
+    },
+    {
+      "requirementCategory": "International Business Collateral",
+      "courseOptions": ["IB407", "IB429", "IB449", "IB492", "IB499", "BUAD400", "MGT472"],
+      "creditsNeeded": 3,
+      "priority": "required",
+      "prerequisites": ["FINC420", "FINC425"],
+      "corequisites": [],
+      "semesterAvailability": "both",
+      "notes": "Must complete 3 hours from approved list"
+    },
+    {
+      "requirementCategory": "Total Hours",
+      "courseOptions": [],
+      "creditsNeeded": 11,
+      "priority": "required",
+      "prerequisites": [],
+      "corequisites": [],
+      "semesterAvailability": "both",
+      "notes": "Earned: 73 hours, In-Progress: 36 hours, Needs: 11 hours to reach 120 total"
+    }
+  ]
+}

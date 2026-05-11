@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Student profile and authentication
+model Student {
+  id              String   @id @default(cuid())
+  studentId       String   @unique
+  email           String   @unique
+  name            String
+  passwordHash    String   // Store hashed password only
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  darsRecords     DARSRecord[]
+  academicPlans   AcademicPlan[]
+  chatSessions    ChatSession[]
+
+  @@index([studentId])
+  @@index([email])
+}
+
+// DARS data storage
+model DARSRecord {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  
+  // JSON data as text for flexibility
+  data            Json     // Stores the full DARSData object
+  
+  uploadedAt      DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([studentId, uploadedAt]) // Track multiple uploads over time
+  @@index([studentId])
+}
+
+// Academic plans
+model AcademicPlan {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  
+  // Plan data
+  data            Json     // Stores the full AcademicPlan object
+  
+  status          PlanStatus @default(DRAFT)
+  generatedAt     DateTime @default(now())
+  confirmedAt     DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  chatSessions    ChatSession[]
+
+  @@index([studentId])
+  @@index([status])
+}
+
+enum PlanStatus {
+  DRAFT
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+// Chat message storage
+model ChatMessage {
+  id              String   @id @default(cuid())
+  sessionId       String
+  session         ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  role            String   // "user" | "assistant"
+  content         String   @db.Text
+  
+  createdAt       DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+// Chat sessions
+model ChatSession {
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  
+  planId          String?
+  plan            AcademicPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  
+  title           String?
+  
+  messages        ChatMessage[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([planId])
+}
+
+// Rate limiting helper
+model RateLimit {
+  id              String   @id @default(cuid())
+  studentId       String
+  endpoint        String   // e.g., "parse-dars-file" or "generate-plan"
+  
+  requestCount    Int      @default(0)
+  windowStart     DateTime @default(now())
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([studentId, endpoint, windowStart])
+  @@index([studentId])
+}
