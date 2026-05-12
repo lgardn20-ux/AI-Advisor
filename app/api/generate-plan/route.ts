@@ -5,8 +5,6 @@ import { isValidAcademicPlan } from '@/lib/parser';
 import { categorizeInProgressCourses, formatSemester, getLatestReservedSemester, getNextAcademicSemester } from '@/lib/semester';
 import type { DARSData, AcademicPlan, PlanGenerationPreferences } from '@/lib/types';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 function buildSystemPrompt(): string {
   return `You are an expert academic advisor. Your job is to generate a detailed, semester-by-semester academic plan for a college student based on their DARS (Degree Audit Report System) data.
 
@@ -106,6 +104,8 @@ Remember: respond with ONLY the JSON object, no markdown or explanation.`;
 
 export async function POST(request: NextRequest) {
   try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    
     const body = await request.json() as { dars: DARSData; preferences: PlanGenerationPreferences };
     const { dars, preferences } = body;
 

@@ -2,8 +2,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest } from 'next/server';
 import { parseDarsJson } from '@/lib/parser';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 // File size limit: 5 MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -66,6 +64,8 @@ Rules:
 
 export async function POST(request: NextRequest) {
   try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 

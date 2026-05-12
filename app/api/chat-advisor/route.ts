@@ -2,8 +2,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest } from 'next/server';
 import type { DARSData, AcademicPlan, ChatMessage } from '@/lib/types';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 function buildSystemPrompt(dars: DARSData, plan: AcademicPlan | null): string {
   const profile = dars.studentProfile;
   const completedList = dars.completedCourses
@@ -44,6 +42,8 @@ Keep answers concise (2–4 paragraphs max). Use bullet points for lists. Be spe
 
 export async function POST(request: NextRequest) {
   try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    
     const body = await request.json() as {
       dars: DARSData;
       plan: AcademicPlan | null;
