@@ -1,180 +1,199 @@
 import Link from 'next/link';
-import { getSampleDars, loadPlan } from '@/lib/store';
-import ProgressBar from '@/components/ProgressBar';
-import CountdownTimer from '@/components/CountdownTimer';
-import { categorizeInProgressCourses } from '@/lib/semester';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  ArrowRight,
+  Upload,
+  Zap,
+  CheckCircle2,
+  GraduationCap,
+  ShieldCheck,
+  Clock,
+  BarChart3,
+  Sparkles,
+  ChevronRight,
+} from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+const FEATURES = [
+  {
+    icon: Upload,
+    title: 'Upload Your DARS',
+    description: 'Drag and drop your Degree Audit Report — as a PDF, image, or paste JSON. Our AI extracts every course, grade, and requirement in seconds.',
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+  },
+  {
+    icon: Zap,
+    title: 'AI Generates Your Plan',
+    description: "Claude analyzes your transcript, prerequisites, and graduation requirements to build a smart semester-by-semester plan tailored to you.",
+    color: 'text-violet-600',
+    bg: 'bg-violet-50',
+  },
+  {
+    icon: CheckCircle2,
+    title: 'Stay on Track',
+    description: 'Monitor your progress with a live registration countdown, a pre-registration checklist, and an AI advisor you can chat with any time.',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+  },
+];
 
-export default function DashboardPage() {
-  const dars = getSampleDars();
-  const plan = loadPlan(dars.studentProfile.studentId);
-  const { studentProfile: p, completedCourses, inProgressCourses, remainingRequirements } = dars;
-  const { currentTermCourses, futureTermCourses, currentSemester } = categorizeInProgressCourses(inProgressCourses);
+const STATS = [
+  { value: '< 30s',  label: 'Plan generation' },
+  { value: '100%',   label: 'Prereq-aware' },
+  { value: '3x',     label: 'Alternatives per course' },
+  { value: 'Live',   label: 'Registration countdown' },
+];
 
-  const regDate = new Date(p.registrationDate);
-  const now = new Date();
-  const daysUntilReg = Math.ceil((regDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  const showRegAlert = daysUntilReg > 0 && daysUntilReg <= p.registrationReminderDays;
+const TRUST = [
+  { icon: ShieldCheck, text: 'FERPA-aware data handling' },
+  { icon: Clock, text: 'Real-time registration countdowns' },
+  { icon: BarChart3, text: 'Credit & GPA progress tracking' },
+];
 
-  const nextSemester = plan?.semesters[0];
-  const requiredRemaining = remainingRequirements.filter(r => r.priority === 'required').length;
-
+export default function HomePage() {
   return (
-    <div className="space-y-6">
-      {showRegAlert && (
-        <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 flex items-start gap-3">
-          <span className="text-amber-500 text-xl">⚠️</span>
-          <div>
-            <p className="font-semibold text-amber-800">Registration opening soon!</p>
-            <p className="text-amber-700 text-sm">
-              Your registration window opens on{' '}
-              <strong>{regDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>.{' '}
-              Make sure your plan is finalized.
+    <div className="min-h-screen bg-background">
+
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden px-4 pt-20 pb-24 sm:pt-28 sm:pb-32">
+        {/* Subtle radial gradient background */}
+        <div
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(79,70,229,0.08) 0%, transparent 70%)',
+          }}
+        />
+
+        <div className="mx-auto max-w-3xl text-center">
+          <Badge variant="outline" className="mb-6 gap-1.5 text-xs font-medium border-primary/20 text-primary bg-primary/5">
+            <Sparkles className="h-3 w-3" />
+            Powered by Claude AI
+          </Badge>
+
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6 leading-[1.1]">
+            Graduate on time —{' '}
+            <span className="gradient-text">with a plan built by AI</span>
+          </h1>
+
+          <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8">
+            Upload your DARS report and get a complete, prerequisite-aware semester plan in under 30 seconds. Then chat with your AI advisor whenever questions come up.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button size="xl" asChild>
+              <Link href="/dars">
+                <Upload className="h-4 w-4" />
+                Upload Your DARS
+              </Link>
+            </Button>
+            <Button size="xl" variant="outline" asChild>
+              <Link href="/dashboard">
+                View Demo
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Stats strip ───────────────────────────────────────────────────── */}
+      <section className="border-y border-border/60 bg-muted/30 py-8 px-4">
+        <div className="mx-auto max-w-4xl">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+            {STATS.map(({ value, label }) => (
+              <div key={label} className="text-center">
+                <div className="text-2xl font-bold text-foreground tabular-nums">{value}</div>
+                <div className="text-xs text-muted-foreground mt-0.5 uppercase tracking-widest">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Features ──────────────────────────────────────────────────────── */}
+      <section className="px-4 py-20 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center mb-14">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
+              Everything you need to finish strong
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              From DARS analysis to semester planning to registration prep — one tool, every step.
             </p>
           </div>
-        </div>
-      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{p.name}</h1>
-              <p className="text-gray-500 text-sm">
-                {p.major}{p.minor ? ` · ${p.minor} Minor` : ''} · Class of {p.expectedGraduationSemester}
-              </p>
-              <p className="text-gray-400 text-xs mt-0.5">
-                Catalog Year: {p.catalogYear}
-              </p>
-            </div>
-            <span className="text-3xl">🎓</span>
-          </div>
-
-          <ProgressBar
-            completed={p.totalCreditsCompleted}
-            total={p.totalCreditsRequired}
-            label="Credits completed"
-            color="bg-blue-600"
-          />
-
-          <div className="grid grid-cols-4 gap-3 pt-2">
-            <StatCard value={p.totalCreditsCompleted} label="Credits Done" color="text-blue-700" />
-            <StatCard value={p.totalCreditsRequired - p.totalCreditsCompleted} label="Credits Left" color="text-orange-600" />
-            <StatCard value={requiredRemaining} label="Req. Remaining" color="text-red-600" />
-            <GPACard gpa={p.currentGPA} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {FEATURES.map(({ icon: Icon, title, description, color, bg }) => (
+              <div
+                key={title}
+                className="group relative rounded-xl border border-border bg-card p-6 card-shadow hover:card-shadow-md transition-all duration-200 hover:-translate-y-0.5"
+              >
+                <div className={`inline-flex h-10 w-10 items-center justify-center rounded-lg ${bg} mb-4`}>
+                  <Icon className={`h-5 w-5 ${color}`} strokeWidth={1.75} />
+                </div>
+                <h3 className="font-semibold text-foreground mb-2">{title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+                <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                  Learn more <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+      </section>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-4">
-          <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Registration Countdown</h2>
-          <CountdownTimer targetDate={p.registrationDate} label="Opens in" />
-          <p className="text-xs text-gray-400">
-            {regDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+      {/* ── Trust signals ─────────────────────────────────────────────────── */}
+      <section className="px-4 py-16 bg-muted/30 border-t border-border/60">
+        <div className="mx-auto max-w-4xl">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+            {TRUST.map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                <Icon className="h-4 w-4 text-primary flex-shrink-0" />
+                {text}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ───────────────────────────────────────────────────────────── */}
+      <section className="px-4 py-20 sm:py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 mb-6">
+            <GraduationCap className="h-7 w-7 text-primary" strokeWidth={1.5} />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+            Your degree is a plan away
+          </h2>
+          <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
+            Upload your DARS and let AI do the hard work. It takes less than a minute.
           </p>
-          <Link
-            href="/registration"
-            className="mt-auto text-center text-sm bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700 transition-colors"
-          >
-            View Checklist →
-          </Link>
+          <Button size="xl" asChild>
+            <Link href="/dars">
+              Start Planning Now
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex justify-between items-center mb-3">
-            <div>
-              <h2 className="font-semibold text-gray-800">In Progress This Semester</h2>
-              <p className="text-xs text-gray-400">{currentSemester.original}</p>
-            </div>
-            <span className="text-xs text-gray-400">{currentTermCourses.length} courses</span>
+      {/* ── Footer ────────────────────────────────────────────────────────── */}
+      <footer className="border-t border-border/60 bg-muted/20 px-4 py-8">
+        <div className="mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <GraduationCap className="h-4 w-4 text-primary" />
+            <span className="font-medium text-foreground">AcademicAdvisor</span>
+            <span>&mdash; AI-powered degree planning</span>
           </div>
-          {currentTermCourses.length === 0 ? (
-            <p className="text-gray-400 text-sm">No courses in progress for the current semester.</p>
-          ) : (
-            <ul className="space-y-2">
-              {currentTermCourses.map(c => (
-                <li key={c.courseCode} className="flex items-center gap-2 text-sm">
-                  <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
-                  <span className="font-medium text-gray-700">{c.courseCode}</span>
-                  <span className="text-gray-500 truncate">{c.courseName}</span>
-                  <span className="ml-auto text-gray-400">{c.credits}cr</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex justify-between items-center mb-3">
-            <div>
-              <h2 className="font-semibold text-gray-800">Registered for Upcoming Semester</h2>
-              {futureTermCourses.length > 0 && (
-                <p className="text-xs text-gray-400">{futureTermCourses[0].semesterTaken}</p>
-              )}
-            </div>
-            <span className="text-xs text-gray-400">{futureTermCourses.length} courses</span>
+          <div className="flex items-center gap-4">
+            <span>© {new Date().getFullYear()} AcademicAdvisor</span>
+            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
           </div>
-          {futureTermCourses.length === 0 ? (
-            <p className="text-gray-400 text-sm">No registered future courses found.</p>
-          ) : (
-            <ul className="space-y-2">
-              {futureTermCourses.map(c => (
-                <li key={c.courseCode} className="flex items-center gap-2 text-sm">
-                  <span className="w-2 h-2 rounded-full bg-sky-400 flex-shrink-0" />
-                  <span className="font-medium text-gray-700">{c.courseCode}</span>
-                  <span className="text-gray-500 truncate">{c.courseName}</span>
-                  <span className="ml-auto text-gray-400">{c.credits}cr</span>
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-gray-800">Recent Courses</h2>
-          <span className="text-xs text-gray-400">{completedCourses.length} completed</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {completedCourses.slice(-8).map(c => (
-            <div key={c.courseCode} className="rounded-lg bg-gray-50 border border-gray-100 p-2">
-              <p className="text-xs font-semibold text-gray-700">{c.courseCode}</p>
-              <p className="text-xs text-gray-500 truncate">{c.courseName}</p>
-              <p className={`text-xs font-bold mt-0.5 ${gradeColor(c.grade)}`}>{c.grade}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      </footer>
     </div>
   );
-}
-
-function StatCard({ value, label, color }: { value: number; label: string; color: string }) {
-  return (
-    <div className="rounded-lg bg-gray-50 border border-gray-100 p-3 text-center">
-      <p className={`text-3xl font-bold ${color}`}>{value}</p>
-      <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-    </div>
-  );
-}
-
-function GPACard({ gpa }: { gpa: number }) {
-  const color = gpa >= 3.5 ? 'text-green-600' : gpa >= 3.0 ? 'text-blue-700' : gpa >= 2.0 ? 'text-yellow-600' : 'text-red-600';
-  return (
-    <div className="rounded-lg bg-gray-50 border border-gray-100 p-3 text-center">
-      <p className={`text-3xl font-bold ${color}`}>{gpa.toFixed(2)}</p>
-      <p className="text-xs text-gray-500 mt-0.5">Current GPA</p>
-    </div>
-  );
-}
-
-function gradeColor(grade: string): string {
-  if (grade.startsWith('A')) return 'text-green-600';
-  if (grade.startsWith('B')) return 'text-blue-600';
-  if (grade.startsWith('C')) return 'text-yellow-600';
-  if (grade === 'IP') return 'text-gray-400';
-  return 'text-red-600';
 }

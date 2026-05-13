@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: __dirname,
-  },
+  // Removed turbopack config as it may cause issues on Vercel
 };
 
 export default nextConfig;

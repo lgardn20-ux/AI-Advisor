@@ -2,7 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import CountdownTimer from '@/components/CountdownTimer';
+import ProgressBar from '@/components/ProgressBar';
 import type { DARSData, AcademicPlan } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import {
+  Clock,
+  CheckCircle2,
+  Circle,
+  AlertTriangle,
+  CalendarDays,
+  BookOpen,
+  ArrowRight,
+  PartyPopper,
+} from 'lucide-react';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface ChecklistItem {
   id: string;
@@ -57,7 +74,7 @@ const BASE_CHECKLIST: Omit<ChecklistItem, 'done'>[] = [
   },
   {
     id: 'housing',
-    label: 'Complete housing/meal plan selection',
+    label: 'Complete housing / meal plan selection',
     description: 'If applicable, submit housing preferences before the deadline.',
     priority: 'low',
   },
@@ -69,16 +86,10 @@ const BASE_CHECKLIST: Omit<ChecklistItem, 'done'>[] = [
   },
 ];
 
-const PRIORITY_LABEL: Record<ChecklistItem['priority'], string> = {
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-};
-
-const PRIORITY_COLOR: Record<ChecklistItem['priority'], string> = {
-  high: 'text-red-600 bg-red-50 border-red-200',
-  medium: 'text-amber-600 bg-amber-50 border-amber-200',
-  low: 'text-gray-500 bg-gray-50 border-gray-200',
+const PRIORITY_META = {
+  high:   { label: 'High Priority',   variant: 'destructive' as const, dot: 'bg-destructive' },
+  medium: { label: 'Medium Priority', variant: 'warning'     as const, dot: 'bg-amber-400'   },
+  low:    { label: 'Low Priority',    variant: 'secondary'   as const, dot: 'bg-muted-foreground' },
 };
 
 export default function RegistrationPage() {
@@ -123,115 +134,190 @@ export default function RegistrationPage() {
   }
 
   const doneCount = checklist.filter(i => i.done).length;
-  const highPriority = checklist.filter(i => i.priority === 'high');
-  const medPriority = checklist.filter(i => i.priority === 'medium');
-  const lowPriority = checklist.filter(i => i.priority === 'low');
-
+  const allDone = doneCount === checklist.length;
   const nextSemester = plan?.semesters[0];
 
+  const grouped = (['high', 'medium', 'low'] as const).map(priority => ({
+    priority,
+    items: checklist.filter(i => i.priority === priority),
+  }));
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Registration Tracker</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Track your registration preparation checklist and countdown.
+    <div className="mx-auto max-w-4xl px-4 sm:px-6 py-10 space-y-6 animate-fade-in">
+
+      {/* Page header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Registration Tracker</h1>
+        <p className="text-muted-foreground text-sm">
+          Complete your pre-registration checklist and track the countdown to your registration window.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {dars && (
-          <div className="md:col-span-1 bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-            <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Registration Window</h2>
-            <CountdownTimer
-              targetDate={dars.studentProfile.registrationDate}
-              label="Opens in"
-            />
-            <div className="text-xs text-gray-400">
-              {new Date(dars.studentProfile.registrationDate).toLocaleDateString('en-US', {
-                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Checklist Progress</h2>
-            <span className="text-sm font-medium text-gray-600">{doneCount} / {checklist.length} complete</span>
-          </div>
-          <div className="h-3 rounded-full bg-gray-200 overflow-hidden mb-4">
-            <div
-              className="h-full rounded-full bg-green-500 transition-all duration-500"
-              style={{ width: `${Math.round((doneCount / checklist.length) * 100)}%` }}
-            />
-          </div>
-          {doneCount === checklist.length ? (
-            <p className="text-green-600 font-semibold text-sm">🎉 All items complete! You&apos;re ready to register.</p>
-          ) : (
-            <p className="text-gray-500 text-sm">
-              Complete {checklist.length - doneCount} more item{checklist.length - doneCount > 1 ? 's' : ''} before registration.
-            </p>
-          )}
-        </div>
-      </div>
-
-      {nextSemester && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-800 mb-3">Planned Courses — {nextSemester.semester}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {nextSemester.courses.map(c => (
-              <div key={c.courseCode} className="flex items-center gap-3 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                <div>
-                  <span className="font-semibold text-gray-700 text-sm">{c.courseCode}</span>
-                  <span className="text-gray-500 text-sm ml-2">{c.courseName}</span>
-                </div>
-                <span className="ml-auto text-xs text-gray-400">{c.credits}cr</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-gray-400 mt-2">
-            Total: {nextSemester.totalCredits} credits
-          </p>
-        </div>
+      {/* All done banner */}
+      {allDone && (
+        <Alert variant="success">
+          <PartyPopper className="h-4 w-4" />
+          <AlertTitle>You&apos;re ready to register!</AlertTitle>
+          <AlertDescription>All checklist items are complete. Good luck with registration.</AlertDescription>
+        </Alert>
       )}
 
-      <div className="space-y-3">
-        {([['high', highPriority], ['medium', medPriority], ['low', lowPriority]] as const).map(([priority, items]) => (
-          <div key={priority} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className={`px-6 py-3 text-xs font-semibold uppercase tracking-wide border-b ${PRIORITY_COLOR[priority]}`}>
-              {PRIORITY_LABEL[priority]} Priority
+      {/* Top row: countdown + progress */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+        {/* Countdown card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
+                Registration Window
+              </CardTitle>
             </div>
-            <ul className="divide-y divide-gray-100">
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {dars ? (
+              <>
+                <CountdownTimer targetDate={dars.studentProfile.registrationDate} label="Opens in" />
+                <p className="text-xs text-muted-foreground">
+                  {new Date(dars.studentProfile.registrationDate).toLocaleDateString('en-US', {
+                    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+                  })}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground py-4 text-center">Loading…</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Checklist progress card */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">Checklist Progress</CardTitle>
+              <span className="text-sm font-semibold tabular-nums text-foreground">
+                {doneCount} / {checklist.length}
+              </span>
+            </div>
+            <CardDescription>Complete all items before your registration window opens.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ProgressBar
+              completed={doneCount}
+              total={checklist.length}
+              size="lg"
+              color={allDone ? 'bg-emerald-500' : undefined}
+            />
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              {(['high', 'medium', 'low'] as const).map(p => {
+                const group = checklist.filter(i => i.priority === p);
+                const done = group.filter(i => i.done).length;
+                return (
+                  <div key={p} className="flex items-center gap-1.5">
+                    <span className={cn('h-2 w-2 rounded-full', PRIORITY_META[p].dot)} />
+                    <span className="capitalize">{p}: {done}/{group.length}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Planned courses */}
+      {nextSemester ? (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm">Planned Courses — {nextSemester.semester}</CardTitle>
+              </div>
+              <Badge variant="outline">{nextSemester.totalCredits} credits total</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {nextSemester.courses.map(c => (
+                <div
+                  key={c.courseCode}
+                  className="flex items-center gap-3 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2.5"
+                >
+                  <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-semibold text-sm text-foreground">{c.courseCode}</span>
+                    <span className="text-sm text-muted-foreground ml-2 truncate">{c.courseName}</span>
+                  </div>
+                  <Badge variant="outline" className="text-xs flex-shrink-0">{c.credits} cr</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div className="flex items-center gap-3">
+              <CalendarDays className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-foreground">No plan generated yet</p>
+                <p className="text-xs text-muted-foreground">Generate a plan to see your upcoming courses here.</p>
+              </div>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/plans">
+                Generate Plan
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Checklist sections */}
+      <div className="space-y-4">
+        {grouped.map(({ priority, items }) => (
+          <Card key={priority} className="overflow-hidden">
+            <div className={cn(
+              'px-6 py-2.5 border-b border-border flex items-center gap-2',
+              priority === 'high' ? 'bg-destructive/5' : priority === 'medium' ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-muted/40'
+            )}>
+              <span className={cn('h-2 w-2 rounded-full flex-shrink-0', PRIORITY_META[priority].dot)} />
+              <span className="text-xs font-semibold uppercase tracking-widest text-foreground">
+                {PRIORITY_META[priority].label}
+              </span>
+              <span className="ml-auto text-xs text-muted-foreground">
+                {items.filter(i => i.done).length}/{items.length} done
+              </span>
+            </div>
+            <ul className="divide-y divide-border">
               {items.map(item => (
                 <li
                   key={item.id}
-                  className={`flex items-start gap-4 px-6 py-4 transition-colors ${item.done ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
+                  className={cn(
+                    'flex items-start gap-4 px-6 py-4 transition-colors cursor-pointer select-none',
+                    item.done ? 'bg-muted/30' : 'hover:bg-muted/30'
+                  )}
+                  onClick={() => toggleItem(item.id)}
                 >
-                  <button
-                    onClick={() => toggleItem(item.id)}
-                    className={`mt-0.5 w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
-                      item.done
-                        ? 'bg-green-500 border-green-500 text-white'
-                        : 'border-gray-300 hover:border-green-400'
-                    }`}
-                  >
-                    {item.done && (
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </button>
-                  <div className={item.done ? 'opacity-50' : ''}>
-                    <p className={`text-sm font-medium ${item.done ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                  {item.done
+                    ? <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-500 flex-shrink-0" />
+                    : <Circle className="mt-0.5 h-5 w-5 text-muted-foreground/40 flex-shrink-0" />
+                  }
+                  <div className={cn('space-y-0.5', item.done && 'opacity-50')}>
+                    <p className={cn(
+                      'text-sm font-medium transition-colors',
+                      item.done ? 'line-through text-muted-foreground' : 'text-foreground'
+                    )}>
                       {item.label}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
                   </div>
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

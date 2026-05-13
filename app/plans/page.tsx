@@ -2,6 +2,29 @@
 
 import { useState, useRef } from 'react';
 import type { DARSData, AcademicPlan, SemesterPlan, PlanGenerationPreferences, ChatMessage, ProfessorInfo } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import EmptyState from '@/components/EmptyState';
+import {
+  Loader2,
+  RefreshCw,
+  MessageCircle,
+  X,
+  ChevronDown,
+  ChevronUp,
+  CalendarDays,
+  AlertTriangle,
+  CheckCircle2,
+  BookOpen,
+  User,
+  SendHorizonal,
+  Info,
+  Star,
+  ChevronRight,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function PlansPage() {
   const [dars, setDars] = useState<DARSData | null>(null);
@@ -28,11 +51,11 @@ export default function PlansPage() {
     const res = await fetch('/api/sample-dars');
     const data = await res.json() as DARSData;
     setDars(data);
+    return data;
   }
 
   async function loadProfessorData(courseCodes: string[]) {
     const newProfessorData: Record<string, ProfessorInfo[]> = {};
-
     for (const courseCode of courseCodes) {
       try {
         const res = await fetch(`/api/professors?courseCode=${encodeURIComponent(courseCode)}`);
@@ -40,36 +63,29 @@ export default function PlansPage() {
           const data = await res.json();
           newProfessorData[courseCode] = data.professors || [];
         }
-      } catch (error) {
-        console.error(`Failed to load professor data for ${courseCode}:`, error);
+      } catch {
+        // silently ignore
       }
     }
-
     setProfessorData(newProfessorData);
   }
 
   async function generatePlan() {
-    if (!dars) {
-      await loadDars();
-      return;
-    }
     setLoading(true);
     setError('');
     try {
+      const activeDars = dars ?? await loadDars();
       const res = await fetch('/api/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dars, preferences: prefs }),
+        body: JSON.stringify({ dars: activeDars, preferences: prefs }),
       });
       const json = await res.json() as { plan?: AcademicPlan; error?: string };
       if (!res.ok || json.error) throw new Error(json.error || 'Failed to generate plan');
       setPlan(json.plan!);
       setExpandedSem(json.plan!.semesters[0]?.semester ?? null);
-
-      // Load professor data for all courses in the plan
       const allCourses = json.plan!.semesters.flatMap(sem => sem.courses.map(c => c.courseCode));
-      const uniqueCourses = [...new Set(allCourses)];
-      loadProfessorData(uniqueCourses);
+      loadProfessorData([...new Set(allCourses)]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error');
     } finally {
@@ -92,12 +108,10 @@ export default function PlansPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dars, plan, messages: newMessages }),
       });
-
       if (!res.body) throw new Error('No stream');
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let assistantText = '';
-
       const assistantMsg: ChatMessage = { role: 'assistant', content: '', timestamp: new Date().toISOString() };
       setMessages(prev => [...prev, assistantMsg]);
 
@@ -124,105 +138,137 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl px-4 sm:px-6 py-10 space-y-6 animate-fade-in">
+
+      {/* Page header */}
       <div className="flex items-start justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Semester Plans</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            AI-generated semester-by-semester course plan
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Semester Plans</h1>
+          <p className="text-muted-foreground text-sm">
+            AI-generated semester-by-semester course plan tailored to your DARS.
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2">
           {plan && (
-            <button
+            <Button
+              variant="outline"
               onClick={() => setChatOpen(o => !o)}
-              className="text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 transition-colors"
             >
-              💬 Advisor Chat
-            </button>
+              <MessageCircle className="h-4 w-4" />
+              Advisor Chat
+            </Button>
           )}
-          <button
-            onClick={generatePlan}
-            disabled={loading}
-            className="text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg px-4 py-2 transition-colors"
-          >
-            {loading ? 'Generating…' : plan ? '↺ Regenerate Plan' : 'Generate Plan'}
-          </button>
+          <Button onClick={generatePlan} loading={loading}>
+            {!loading && (plan ? <RefreshCw className="h-4 w-4" /> : <CalendarDays className="h-4 w-4" />)}
+            {loading ? 'Generating…' : plan ? 'Regenerate Plan' : 'Generate Plan'}
+          </Button>
         </div>
       </div>
 
+      {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">{error}</div>
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Generation failed</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="font-semibold text-gray-700 mb-4 text-sm uppercase tracking-wide">Plan Preferences</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-gray-600">Semesters remaining</span>
-            <select
-              value={prefs.semestersRemaining}
-              onChange={e => setPrefs(p => ({ ...p, semestersRemaining: +e.target.value }))}
-              className="border border-gray-300 rounded-md px-2 py-1.5 text-sm text-black"
-            >
-              {[2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </label>
-
-          <label className="flex items-center gap-2 text-sm cursor-pointer pt-5">
-            <input
-              type="checkbox"
-              checked={prefs.preferLighterLoad}
-              onChange={e => setPrefs(p => ({ ...p, preferLighterLoad: e.target.checked }))}
-              className="rounded"
-            />
-            <span className="text-gray-600">Prefer lighter load</span>
-          </label>
-
-          <label className="flex items-center gap-2 text-sm cursor-pointer pt-5">
-            <input
-              type="checkbox"
-              checked={prefs.summerAvailable}
-              onChange={e => setPrefs(p => ({ ...p, summerAvailable: e.target.checked }))}
-              className="rounded"
-            />
-            <span className="text-gray-600">Summer available</span>
-          </label>
-
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-gray-600">Additional notes</span>
-            <input
-              value={prefs.additionalConstraints}
-              onChange={e => setPrefs(p => ({ ...p, additionalConstraints: e.target.value }))}
-              placeholder="e.g. avoid 8am classes"
-              className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
-            />
-          </label>
-        </div>
-      </div>
-
-      {loading && (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <div className="inline-flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-gray-500 text-sm">Claude is building your personalized plan…</p>
-          </div>
-        </div>
-      )}
-
-      {!loading && !plan && (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <span className="text-5xl mb-4 block">📅</span>
-          <p className="text-gray-500 text-sm">Click &quot;Generate Plan&quot; to create your AI-powered academic roadmap.</p>
-        </div>
-      )}
-
-      {plan && !loading && (
-        <div className="space-y-3">
-          {plan.overallNotes && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-              <strong>Advisor Notes:</strong> {plan.overallNotes}
+      {/* Preferences */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Plan Preferences</CardTitle>
+          <CardDescription>Customize how Claude builds your academic roadmap.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-foreground">Semesters remaining</label>
+              <select
+                value={prefs.semestersRemaining}
+                onChange={e => setPrefs(p => ({ ...p, semestersRemaining: +e.target.value }))}
+                className="h-9 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {[2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
             </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-foreground">Additional notes</label>
+              <input
+                value={prefs.additionalConstraints}
+                onChange={e => setPrefs(p => ({ ...p, additionalConstraints: e.target.value }))}
+                placeholder="e.g. avoid 8am classes"
+                className="h-9 rounded-md border border-border bg-background px-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+
+            <label className="flex items-center gap-2.5 cursor-pointer sm:pt-5">
+              <input
+                type="checkbox"
+                checked={prefs.preferLighterLoad}
+                onChange={e => setPrefs(p => ({ ...p, preferLighterLoad: e.target.checked }))}
+                className="h-4 w-4 rounded border-border accent-primary"
+              />
+              <span className="text-sm text-foreground">Prefer lighter load</span>
+            </label>
+
+            <label className="flex items-center gap-2.5 cursor-pointer sm:pt-5">
+              <input
+                type="checkbox"
+                checked={prefs.summerAvailable}
+                onChange={e => setPrefs(p => ({ ...p, summerAvailable: e.target.checked }))}
+                className="h-4 w-4 rounded border-border accent-primary"
+              />
+              <span className="text-sm text-foreground">Summer available</span>
+            </label>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Loading state */}
+      {loading && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+              <Loader2 className="h-7 w-7 text-primary animate-spin" />
+            </div>
+            <div className="text-center space-y-1">
+              <p className="font-medium text-foreground">Building your personalized plan…</p>
+              <p className="text-sm text-muted-foreground">Claude is analyzing your DARS and prerequisites. This takes 20–40 seconds.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty state */}
+      {!loading && !plan && (
+        <Card>
+          <CardContent className="p-0">
+            <EmptyState
+              icon={CalendarDays}
+              title="No plan generated yet"
+              description='Set your preferences above, then click "Generate Plan" to create your AI-powered academic roadmap.'
+              action={
+                <Button onClick={generatePlan}>
+                  <CalendarDays className="h-4 w-4" />
+                  Generate Plan
+                </Button>
+              }
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Plan */}
+      {plan && !loading && (
+        <div className="space-y-4 animate-slide-up">
+          {plan.overallNotes && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Advisor Notes</AlertTitle>
+              <AlertDescription>{plan.overallNotes}</AlertDescription>
+            </Alert>
           )}
 
           {plan.semesters.map(sem => (
@@ -237,47 +283,63 @@ export default function PlansPage() {
         </div>
       )}
 
-      {chatOpen && plan && dars && (
-        <div className="fixed bottom-4 right-4 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden z-50 max-h-[32rem]">
-          <div className="bg-purple-600 text-white px-4 py-3 flex justify-between items-center">
-            <span className="font-semibold text-sm">💬 Advisor Chat</span>
-            <button onClick={() => setChatOpen(false)} className="text-white/80 hover:text-white text-lg leading-none">×</button>
+      {/* Chat panel */}
+      {chatOpen && plan && (
+        <div className="fixed bottom-4 right-4 w-96 bg-background rounded-2xl shadow-xl border border-border flex flex-col overflow-hidden z-50 max-h-[32rem]">
+          {/* Chat header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-primary">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4 text-primary-foreground" />
+              <span className="font-semibold text-sm text-primary-foreground">Advisor Chat</span>
+            </div>
+            <button
+              onClick={() => setChatOpen(false)}
+              className="text-primary-foreground/70 hover:text-primary-foreground transition-colors rounded-md p-0.5"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
+
+          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 text-sm min-h-0">
             {messages.length === 0 && (
-              <p className="text-gray-400 text-center text-xs py-4">
-                Ask me anything about your plan, prerequisites, or course options!
+              <p className="text-muted-foreground text-center text-xs py-6">
+                Ask me anything about your plan, prerequisites, or course options.
               </p>
             )}
             {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`rounded-xl px-3 py-2 max-w-[85%] whitespace-pre-wrap ${
+              <div key={i} className={cn('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}>
+                <div className={cn(
+                  'rounded-xl px-3 py-2 max-w-[85%] whitespace-pre-wrap text-sm leading-relaxed',
                   m.role === 'user'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {m.content || <span className="animate-pulse text-gray-400">▌</span>}
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground'
+                )}>
+                  {m.content || <span className="text-muted-foreground animate-pulse">▌</span>}
                 </div>
               </div>
             ))}
             <div ref={chatEndRef} />
           </div>
-          <div className="border-t border-gray-200 p-3 flex gap-2">
+
+          {/* Input */}
+          <div className="border-t border-border p-3 flex gap-2">
             <input
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChat()}
               placeholder="Ask about your plan…"
               disabled={chatLoading}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
+              className="flex-1 h-9 rounded-md border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 placeholder:text-muted-foreground/50"
             />
-            <button
+            <Button
+              size="icon"
               onClick={sendChat}
               disabled={chatLoading || !chatInput.trim()}
-              className="bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white rounded-lg px-3 py-1.5 text-sm transition-colors"
+              loading={chatLoading}
             >
-              Send
-            </button>
+              <SendHorizonal className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       )}
@@ -285,81 +347,112 @@ export default function PlansPage() {
   );
 }
 
-function SemesterCard({ sem, expanded, onToggle, professorData }: { sem: SemesterPlan; expanded: boolean; onToggle: () => void; professorData: Record<string, ProfessorInfo[]> }) {
+function SemesterCard({
+  sem,
+  expanded,
+  onToggle,
+  professorData,
+}: {
+  sem: SemesterPlan;
+  expanded: boolean;
+  onToggle: () => void;
+  professorData: Record<string, ProfessorInfo[]>;
+}) {
   const [showAlts, setShowAlts] = useState<string | null>(null);
   const [showProfessors, setShowProfessors] = useState<string | null>(null);
 
+  const isLight = sem.totalCredits < 12;
+  const isHeavy = sem.totalCredits > 17;
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <Card className="overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors text-left"
+        className="w-full flex items-center justify-between px-6 py-4 hover:bg-muted/40 transition-colors text-left"
       >
-        <div className="flex items-center gap-3">
-          <span className="font-semibold text-gray-800">{sem.semester}</span>
-          <span className="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="font-semibold text-foreground">{sem.semester}</span>
+          <Badge
+            variant={isHeavy ? 'warning' : isLight ? 'secondary' : 'default'}
+            className="text-[11px]"
+          >
             {sem.totalCredits} credits
-          </span>
+          </Badge>
           {sem.status === 'confirmed' && (
-            <span className="text-xs bg-green-100 text-green-700 rounded-full px-2 py-0.5">Confirmed</span>
+            <Badge variant="success" className="text-[11px]">
+              <CheckCircle2 className="h-3 w-3" />
+              Confirmed
+            </Badge>
           )}
           {sem.warnings.length > 0 && (
-            <span className="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">
-              ⚠ {sem.warnings.length} warning{sem.warnings.length > 1 ? 's' : ''}
-            </span>
+            <Badge variant="warning" className="text-[11px]">
+              <AlertTriangle className="h-3 w-3" />
+              {sem.warnings.length} warning{sem.warnings.length > 1 ? 's' : ''}
+            </Badge>
           )}
         </div>
-        <span className="text-gray-400 text-lg">{expanded ? '▲' : '▼'}</span>
+        {expanded
+          ? <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          : <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
       </button>
 
       {expanded && (
-        <div className="border-t border-gray-100 px-6 pb-5 pt-4 space-y-4">
+        <div className="border-t border-border px-6 pb-5 pt-4 space-y-4">
           {sem.notes && (
-            <p className="text-sm text-gray-600 italic">{sem.notes}</p>
+            <p className="text-sm text-muted-foreground italic">{sem.notes}</p>
           )}
+
           {sem.warnings.length > 0 && (
-            <ul className="space-y-1">
+            <div className="space-y-1.5">
               {sem.warnings.map((w, i) => (
-                <li key={i} className="text-xs text-amber-700 bg-amber-50 rounded-md px-3 py-1.5">⚠ {w}</li>
+                <Alert key={i} variant="warning" className="py-2">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <AlertDescription className="text-xs">{w}</AlertDescription>
+                </Alert>
               ))}
-            </ul>
+            </div>
           )}
+
           <div className="space-y-2">
             {sem.courses.map(c => {
               const professors = professorData[c.courseCode] || [];
               return (
-                <div key={c.courseCode} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-800 text-sm">{c.courseCode}</span>
-                        <span className="text-gray-500 text-sm">{c.courseName}</span>
-                        <span className="text-xs text-gray-400">{c.credits} cr</span>
+                <div key={c.courseCode} className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-sm text-foreground">{c.courseCode}</span>
+                        <span className="text-sm text-muted-foreground truncate">{c.courseName}</span>
+                        <Badge variant="secondary" className="text-[10px] flex-shrink-0">{c.credits} cr</Badge>
                       </div>
-                      <p className="text-xs text-blue-600 mt-0.5">Fulfills: {c.requirementFulfilled}</p>
+                      <p className="text-xs text-primary font-medium">Fulfills: {c.requirementFulfilled}</p>
                       {professors.length > 0 && (
                         <button
                           onClick={() => setShowProfessors(showProfessors === c.courseCode ? null : c.courseCode)}
-                          className="text-xs text-purple-600 hover:text-purple-800 mt-1 flex items-center gap-1"
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-0.5"
                         >
-                          👨‍🏫 {professors.length} professor{professors.length > 1 ? 's' : ''} available
-                          <span className="text-xs">{showProfessors === c.courseCode ? '▲' : '▼'}</span>
+                          <User className="h-3 w-3" />
+                          {professors.length} professor{professors.length > 1 ? 's' : ''} available
+                          {showProfessors === c.courseCode
+                            ? <ChevronUp className="h-3 w-3" />
+                            : <ChevronDown className="h-3 w-3" />}
                         </button>
                       )}
                     </div>
                     {c.alternatives.length > 0 && (
                       <button
                         onClick={() => setShowAlts(showAlts === c.courseCode ? null : c.courseCode)}
-                        className="text-xs text-gray-500 hover:text-blue-600 whitespace-nowrap flex-shrink-0"
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors flex-shrink-0"
                       >
-                        {showAlts === c.courseCode ? 'Hide' : `${c.alternatives.length} alt${c.alternatives.length > 1 ? 's' : ''}`}
+                        {showAlts === c.courseCode ? 'Hide alts' : `${c.alternatives.length} alt${c.alternatives.length > 1 ? 's' : ''}`}
+                        <ChevronRight className="h-3 w-3" />
                       </button>
                     )}
                   </div>
 
                   {showProfessors === c.courseCode && professors.length > 0 && (
-                    <div className="mt-3 pl-3 border-l-2 border-purple-200 space-y-3">
-                      <p className="text-xs font-medium text-purple-700 mb-2">Professor Reviews:</p>
+                    <div className="pl-3 border-l-2 border-primary/30 space-y-2 mt-1">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Professor Reviews</p>
                       {professors.map((prof, idx) => (
                         <ProfessorCard key={idx} professor={prof} />
                       ))}
@@ -367,13 +460,14 @@ function SemesterCard({ sem, expanded, onToggle, professorData }: { sem: Semeste
                   )}
 
                   {showAlts === c.courseCode && (
-                    <div className="mt-2 pl-3 border-l-2 border-blue-200 space-y-1">
-                      <p className="text-xs font-medium text-gray-500 mb-1">Alternatives:</p>
+                    <div className="pl-3 border-l-2 border-border space-y-1.5 mt-1">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Alternatives</p>
                       {c.alternatives.map(alt => (
-                        <div key={alt.courseCode} className="text-xs">
-                          <span className="font-medium text-gray-700">{alt.courseCode} {alt.courseName}</span>
-                          <span className="text-gray-400 ml-1">({alt.credits} cr)</span>
-                          <span className="text-gray-500"> — {alt.reason}</span>
+                        <div key={alt.courseCode} className="flex items-start gap-2 text-xs">
+                          <span className="font-medium text-foreground">{alt.courseCode}</span>
+                          <span className="text-muted-foreground">{alt.courseName}</span>
+                          <Badge variant="secondary" className="text-[9px] flex-shrink-0">{alt.credits} cr</Badge>
+                          <span className="text-muted-foreground flex-shrink-0 hidden sm:block">— {alt.reason}</span>
                         </div>
                       ))}
                     </div>
@@ -384,59 +478,46 @@ function SemesterCard({ sem, expanded, onToggle, professorData }: { sem: Semeste
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
 function ProfessorCard({ professor }: { professor: ProfessorInfo }) {
   const [showComments, setShowComments] = useState(false);
 
-  const getRatingColor = (rating: number) => {
-    if (rating >= 4.0) return 'text-green-600 bg-green-50';
-    if (rating >= 3.0) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
-  };
-
-  const getDifficultyColor = (difficulty: number) => {
-    if (difficulty <= 2.5) return 'text-green-600';
-    if (difficulty <= 3.5) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+  const ratingVariant = professor.rating >= 4.0 ? 'success' : professor.rating >= 3.0 ? 'warning' : 'destructive';
 
   return (
-    <div className="bg-white rounded-lg border border-purple-100 p-3 space-y-2">
-      <div className="flex items-start justify-between">
+    <div className="rounded-lg border border-border bg-background p-3 space-y-2">
+      <div className="flex items-start justify-between gap-2">
         <div>
-          <h4 className="font-semibold text-gray-800 text-sm">{professor.name}</h4>
-          <p className="text-xs text-gray-500">{professor.department}</p>
+          <p className="font-semibold text-sm text-foreground">{professor.name}</p>
+          <p className="text-xs text-muted-foreground">{professor.department}</p>
         </div>
-        <div className="text-right">
-          <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getRatingColor(professor.rating)}`}>
-            ⭐ {professor.rating.toFixed(1)}
-          </div>
-          <p className="text-xs text-gray-500 mt-1">{professor.totalRatings} ratings</p>
+        <div className="text-right flex-shrink-0">
+          <Badge variant={ratingVariant} className="text-[11px] gap-1">
+            <Star className="h-2.5 w-2.5" />
+            {professor.rating.toFixed(1)}
+          </Badge>
+          <p className="text-[10px] text-muted-foreground mt-1">{professor.totalRatings} ratings</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 text-xs">
-        <div>
-          <span className="text-gray-500">Would take again:</span>
-          <span className="font-medium text-green-600 ml-1">{professor.wouldTakeAgainPercent}%</span>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="flex items-center gap-1">
+          <span className="text-muted-foreground">Would take again:</span>
+          <span className="font-medium text-foreground">{professor.wouldTakeAgainPercent}%</span>
         </div>
-        <div>
-          <span className="text-gray-500">Difficulty:</span>
-          <span className={`font-medium ml-1 ${getDifficultyColor(professor.difficulty)}`}>
-            {professor.difficulty.toFixed(1)}/5
-          </span>
+        <div className="flex items-center gap-1">
+          <span className="text-muted-foreground">Difficulty:</span>
+          <span className="font-medium text-foreground">{professor.difficulty.toFixed(1)}/5</span>
         </div>
       </div>
 
       {professor.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {professor.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-              {tag}
-            </span>
+            <Badge key={tag} variant="secondary" className="text-[10px]">{tag}</Badge>
           ))}
         </div>
       )}
@@ -445,16 +526,17 @@ function ProfessorCard({ professor }: { professor: ProfessorInfo }) {
         <div>
           <button
             onClick={() => setShowComments(!showComments)}
-            className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            💬 {showComments ? 'Hide' : 'Show'} comments ({professor.recentComments.length})
-            <span className="text-xs">{showComments ? '▲' : '▼'}</span>
+            <MessageCircle className="h-3 w-3" />
+            {showComments ? 'Hide' : 'Show'} comments ({professor.recentComments.length})
+            {showComments ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </button>
           {showComments && (
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 space-y-1.5">
               {professor.recentComments.map((comment, idx) => (
-                <blockquote key={idx} className="text-xs text-gray-600 italic border-l-2 border-purple-200 pl-2">
-                  "{comment}"
+                <blockquote key={idx} className="text-xs text-muted-foreground italic border-l-2 border-border pl-2 leading-relaxed">
+                  &ldquo;{comment}&rdquo;
                 </blockquote>
               ))}
             </div>
@@ -463,7 +545,7 @@ function ProfessorCard({ professor }: { professor: ProfessorInfo }) {
       )}
 
       {professor.semestersTaught.length > 0 && (
-        <p className="text-xs text-gray-400">
+        <p className="text-[10px] text-muted-foreground">
           Taught: {professor.semestersTaught.join(', ')}
         </p>
       )}

@@ -1,30 +1,45 @@
+import { cn } from '@/lib/utils';
+
 interface ProgressBarProps {
   completed: number;
   total: number;
   label?: string;
+  showCount?: boolean;
+  size?: 'sm' | 'md' | 'lg';
   color?: string;
+  className?: string;
 }
 
 export default function ProgressBar({
   completed,
   total,
   label,
-  color = 'bg-blue-600',
+  showCount = true,
+  size = 'md',
+  color = 'bg-primary',
+  className,
 }: ProgressBarProps) {
-  const pct = Math.min(100, Math.round((completed / total) * 100));
+  const pct = total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+  const trackH = size === 'sm' ? 'h-1.5' : size === 'lg' ? 'h-3' : 'h-2';
+
   return (
-    <div className="w-full">
-      {label && (
-        <div className="flex justify-between text-sm mb-1">
-          <span className="text-gray-600">{label}</span>
-          <span className="font-medium text-gray-800">
-            {completed} / {total} ({pct}%)
-          </span>
+    <div className={cn('w-full space-y-1.5', className)}>
+      {(label || showCount) && (
+        <div className="flex items-center justify-between gap-2">
+          {label && (
+            <span className="text-sm font-medium text-foreground">{label}</span>
+          )}
+          {showCount && (
+            <span className="ml-auto text-sm text-muted-foreground tabular-nums">
+              {completed}<span className="text-border mx-0.5">/</span>{total}{' '}
+              <span className="text-xs font-semibold text-foreground">({pct}%)</span>
+            </span>
+          )}
         </div>
       )}
-      <div className="h-3 rounded-full bg-gray-200 overflow-hidden">
+      <div className={cn('w-full rounded-full bg-secondary overflow-hidden', trackH)}>
         <div
-          className={`h-full rounded-full transition-all duration-500 ${color}`}
+          className={cn('h-full rounded-full transition-all duration-700 ease-out', color)}
           style={{ width: `${pct}%` }}
         />
       </div>

@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface CountdownTimerProps {
   targetDate: string;
   label?: string;
+  compact?: boolean;
 }
 
 interface TimeLeft {
@@ -25,41 +27,64 @@ function calcTimeLeft(target: Date): TimeLeft | null {
   };
 }
 
-export default function CountdownTimer({ targetDate, label = 'Registration opens in' }: CountdownTimerProps) {
+export default function CountdownTimer({
+  targetDate,
+  label = 'Registration opens in',
+  compact = false,
+}: CountdownTimerProps) {
   const target = new Date(targetDate);
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(calcTimeLeft(target));
 
   useEffect(() => {
     const id = setInterval(() => setTimeLeft(calcTimeLeft(target)), 1000);
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetDate]);
 
   if (!timeLeft) {
     return (
-      <div className="text-green-600 font-semibold text-sm">
-        Registration window is open!
+      <div className="inline-flex items-center gap-2 rounded-full bg-success-bg border border-success-border px-3 py-1.5">
+        <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+        <span className="text-sm font-medium text-success">Registration is open!</span>
       </div>
     );
   }
 
   const pad = (n: number) => String(n).padStart(2, '0');
+  const segments = [
+    { value: timeLeft.days, unit: 'days' },
+    { value: timeLeft.hours, unit: 'hrs' },
+    { value: timeLeft.minutes, unit: 'min' },
+    { value: timeLeft.seconds, unit: 'sec' },
+  ];
+
+  if (compact) {
+    return (
+      <div className="flex items-baseline gap-1 text-sm font-mono font-semibold text-foreground">
+        <span>{timeLeft.days}d</span>
+        <span className="text-muted-foreground">·</span>
+        <span>{pad(timeLeft.hours)}h</span>
+        <span className="text-muted-foreground">·</span>
+        <span>{pad(timeLeft.minutes)}m</span>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <p className="text-xs text-gray-500 mb-1">{label}</p>
+    <div className="space-y-2">
+      {label && (
+        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">{label}</p>
+      )}
       <div className="flex gap-3">
-        {[
-          { value: timeLeft.days, unit: 'd' },
-          { value: timeLeft.hours, unit: 'h' },
-          { value: timeLeft.minutes, unit: 'm' },
-          { value: timeLeft.seconds, unit: 's' },
-        ].map(({ value, unit }) => (
-          <div key={unit} className="flex flex-col items-center">
-            <span className="text-2xl font-bold tabular-nums text-blue-700">
-              {unit === 'd' ? value : pad(value)}
-            </span>
-            <span className="text-xs text-gray-400">{unit}</span>
+        {segments.map(({ value, unit }) => (
+          <div key={unit} className="flex flex-col items-center gap-0.5">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/8 ring-1 ring-primary/12">
+              <span className="text-xl font-bold tabular-nums tracking-tight text-primary"
+                style={{ fontSize: '1.3rem' }}>
+                {unit === 'days' ? value : pad(value)}
+              </span>
+            </div>
+            <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">{unit}</span>
           </div>
         ))}
       </div>

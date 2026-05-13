@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Academic Advisor",
-  description: "AI-powered academic planning assistant",
+  title: "AcademicAdvisor — AI-powered degree planning",
+  description: "Upload your DARS report and get a complete, prerequisite-aware semester plan in under 30 seconds.",
 };
 
 export default function RootLayout({
@@ -28,14 +28,11 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
+      <body className="min-h-full flex flex-col bg-background text-foreground">
         <Navbar />
-        <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
+        <main className="flex-1">
           {children}
         </main>
-        <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-200">
-          Academic Advisor &mdash; AI-powered planning
-        </footer>
       </body>
     </html>
   );
